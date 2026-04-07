@@ -62,6 +62,11 @@ summary statistics, and optionally masks PII columns in reports.
 
 ## Installation
 
+**Requires Python 3.9 or higher.** Tested on Python 3.9, 3.10, 3.11, and 3.12.
+
+PySpark support requires **PySpark 3.3.0 or higher** (optional). Tested with PySpark 3.5.
+Note: PySpark 3.3–3.5 supports Python 3.9–3.11; PySpark 4.0+ adds Python 3.12 support.
+
 ### Basic (pandas only)
 
 ```bash
