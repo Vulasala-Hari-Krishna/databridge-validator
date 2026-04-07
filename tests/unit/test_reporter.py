@@ -3,7 +3,6 @@
 import pandas as pd
 import pytest
 
-from databridge_validator.core.models import ValidationResult
 from databridge_validator.core.reporter import (
     build_mismatch_report,
     get_duplicate_report,

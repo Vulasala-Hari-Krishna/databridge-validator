@@ -42,11 +42,10 @@ def _get_spark_imports():
         from pyspark.sql.types import StringType
 
         return SparkDataFrame, F, StringType
-    except ImportError:
+    except ImportError as err:
         raise ImportError(
-            "PySpark is required for Spark DataFrame support. "
-            "Install it with: pip install databridge-validator[spark]"
-        )
+            "PySpark is required for Spark DataFrame support. Install it with: pip install databridge-validator[spark]"
+        ) from err
 
 
 def validate_dataframe_type(df, name: str = "df") -> None:
@@ -109,15 +108,10 @@ def cast_all_to_string(df: Union[pd.DataFrame, "SparkDataFrame"]) -> Union[pd.Da
         New DataFrame with all columns cast to string. Original is not mutated.
     """
     if _is_spark_dataframe(df):
-        _, F, StringType = _get_spark_imports()
+        _, _F, _StringType = _get_spark_imports()
         from pyspark.sql.functions import col, when
 
-        return df.select(
-            [
-                when(col(c).isNotNull(), col(c).cast("string")).otherwise(None).alias(c)
-                for c in df.columns
-            ]
-        )
+        return df.select([when(col(c).isNotNull(), col(c).cast("string")).otherwise(None).alias(c) for c in df.columns])
 
     result = df.copy()
     for col_name in result.columns:

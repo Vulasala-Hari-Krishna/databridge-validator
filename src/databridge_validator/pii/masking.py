@@ -10,7 +10,11 @@ from typing import List, Optional, Union
 
 import pandas as pd
 
-from databridge_validator.utils.dataframe_helpers import _get_spark_imports, _is_spark_dataframe, validate_dataframe_type
+from databridge_validator.utils.dataframe_helpers import (
+    _get_spark_imports,
+    _is_spark_dataframe,
+    validate_dataframe_type,
+)
 
 logger = logging.getLogger(__name__)
 

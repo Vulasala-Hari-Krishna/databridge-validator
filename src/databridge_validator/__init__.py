@@ -25,28 +25,28 @@ from databridge_validator.pii.masking import (
 from databridge_validator.utils.dataframe_helpers import cast_all_to_string, normalize_columns
 
 __all__ = [
-    # Core comparison
-    "compare_dataframes",
-    # Models
-    "ValidationResult",
     "ColumnMismatch",
     "SchemaDiff",
+    # Models
+    "ValidationResult",
     # Reporting
     "build_mismatch_report",
+    # Utils
+    "cast_all_to_string",
+    # Cleaning
+    "clean_control_characters",
+    # Core comparison
+    "compare_dataframes",
     "get_duplicate_report",
     "get_null_analysis",
     "get_row_counts",
     "get_schema_diff",
-    # Cleaning
-    "clean_control_characters",
-    "trim_whitespace",
     # PII masking
     "mask_alternate_chars",
     "mask_partial",
     "mask_pii_columns",
     "mask_redact",
     "mask_with_hash",
-    # Utils
-    "cast_all_to_string",
     "normalize_columns",
+    "trim_whitespace",
 ]

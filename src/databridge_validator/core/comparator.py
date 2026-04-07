@@ -99,14 +99,27 @@ def compare_dataframes(
 
     if _is_spark_dataframe(source_df):
         return _compare_spark(
-            source_df, target_df, key_columns, exclude_columns,
-            pii_columns, mask_strategy, report_columns,
-            num_partitions, persist, case_sensitive,
+            source_df,
+            target_df,
+            key_columns,
+            exclude_columns,
+            pii_columns,
+            mask_strategy,
+            report_columns,
+            num_partitions,
+            persist,
+            case_sensitive,
         )
 
     return _compare_pandas(
-        source_df, target_df, key_columns, exclude_columns,
-        pii_columns, mask_strategy, report_columns, case_sensitive,
+        source_df,
+        target_df,
+        key_columns,
+        exclude_columns,
+        pii_columns,
+        mask_strategy,
+        report_columns,
+        case_sensitive,
     )
 
 
@@ -181,9 +194,7 @@ def _compare_pandas(
     tgt_common = tgt_with_hash.merge(common_keys, on=key_columns, how="inner")
 
     # Merge on keys and compare hashes
-    joined = src_common.merge(
-        tgt_common, on=key_columns, suffixes=("_source", "_target"), how="inner"
-    )
+    joined = src_common.merge(tgt_common, on=key_columns, suffixes=("_source", "_target"), how="inner")
 
     hash_src_col = f"{ROW_HASH_COL}_source"
     hash_tgt_col = f"{ROW_HASH_COL}_target"
@@ -198,13 +209,21 @@ def _compare_pandas(
 
         # Build the mismatch_columns string: [{col : (src_val:tgt_val)}, ...]
         mismatch_col_strings = _build_mismatch_columns_string(
-            raw_mismatch, compare_cols, pii_columns, mask_strategy,
+            raw_mismatch,
+            compare_cols,
+            pii_columns,
+            mask_strategy,
         )
 
         # Assemble final mismatch DataFrame based on report_columns
         mismatch_records = _assemble_mismatch_df(
-            raw_mismatch, key_columns, compare_cols, mismatch_col_strings,
-            report_columns, pii_columns, mask_strategy,
+            raw_mismatch,
+            key_columns,
+            compare_cols,
+            mismatch_col_strings,
+            report_columns,
+            pii_columns,
+            mask_strategy,
         )
     else:
         mismatch_records = pd.DataFrame()
@@ -236,8 +255,12 @@ def _compare_pandas(
         source_extra_records=source_extra_records.reset_index(drop=True) if source_extra_count > 0 else None,
         target_extra_records=target_extra_records.reset_index(drop=True) if target_extra_count > 0 else None,
         summary=_build_summary(
-            total_source, total_target, matched_count, mismatch_count,
-            source_extra_count, target_extra_count,
+            total_source,
+            total_target,
+            matched_count,
+            mismatch_count,
+            source_extra_count,
+            target_extra_count,
         ),
     )
 
@@ -270,9 +293,9 @@ def _compare_spark(
     All comparison logic uses native Spark SQL functions (JVM execution).
     Python UDFs are only used for PII masking on the tiny result sets.
     """
-    _, F, _ = _get_spark_imports()
-    from pyspark.sql.functions import col, concat_ws, lit, sha2, when
+    _, _F, _ = _get_spark_imports()
     from pyspark import StorageLevel
+    from pyspark.sql.functions import col, concat_ws, lit, sha2, when
 
     src = source_df
     tgt = target_df
@@ -366,9 +389,7 @@ def _compare_spark(
     mismatch_tgt = tgt_delta.drop(ROW_HASH_COL)
 
     # Build mismatch_columns string column: [{col : (src_val:tgt_val)}, ...]
-    joined_mismatch = mismatch_src.alias("src").join(
-        mismatch_tgt.alias("tgt"), key_columns, "inner"
-    )
+    joined_mismatch = mismatch_src.alias("src").join(mismatch_tgt.alias("tgt"), key_columns, "inner")
 
     # Build per-column mismatch string expressions
     from pyspark.sql.functions import array, array_remove, concat
@@ -377,7 +398,9 @@ def _compare_spark(
         when(
             ~col(f"src.{c}").eqNullSafe(col(f"tgt.{c}")),
             concat(
-                lit("{"), lit(c), lit(" : ("),
+                lit("{"),
+                lit(c),
+                lit(" : ("),
                 when(col(f"src.{c}").isNull(), lit("null")).otherwise(col(f"src.{c}").cast("string")),
                 lit(":"),
                 when(col(f"tgt.{c}").isNull(), lit("null")).otherwise(col(f"tgt.{c}").cast("string")),
@@ -395,16 +418,11 @@ def _compare_spark(
     elif report_columns == "source":
         data_cols = [col(f"src.{c}").alias(c) for c in compare_cols]
     else:  # "both"
-        data_cols = (
-            [col(f"src.{c}").alias(f"{c}_source") for c in compare_cols]
-            + [col(f"tgt.{c}").alias(f"{c}_target") for c in compare_cols]
-        )
+        data_cols = [col(f"src.{c}").alias(f"{c}_source") for c in compare_cols] + [
+            col(f"tgt.{c}").alias(f"{c}_target") for c in compare_cols
+        ]
 
-    select_expr = (
-        [col(f"src.{c}") for c in key_columns]
-        + data_cols
-        + [mismatch_col_expr]
-    )
+    select_expr = [col(f"src.{c}") for c in key_columns] + data_cols + [mismatch_col_expr]
 
     from pyspark.sql.functions import length
 
@@ -415,7 +433,10 @@ def _compare_spark(
     # Apply PII masking
     if pii_columns:
         mismatch_records = _apply_pii_masking_spark(
-            mismatch_records, pii_columns, mask_strategy, report_columns,
+            mismatch_records,
+            pii_columns,
+            mask_strategy,
+            report_columns,
         )
 
     mismatch_count = mismatch_records.count()
@@ -444,8 +465,12 @@ def _compare_spark(
         source_extra_records=source_extra if source_extra_count > 0 else None,
         target_extra_records=target_extra if target_extra_count > 0 else None,
         summary=_build_summary(
-            total_source, total_target, matched_count, mismatch_count,
-            source_extra_count, target_extra_count,
+            total_source,
+            total_target,
+            matched_count,
+            mismatch_count,
+            source_extra_count,
+            target_extra_count,
         ),
     )
 
@@ -456,6 +481,7 @@ def _compute_pandas_row_hash(df: pd.DataFrame, columns: List[str]) -> pd.Series:
     Null values are represented as '__NULL__' in the hash input to ensure
     consistent hashing behavior.
     """
+
     def row_hash(row):
         values = []
         for c in columns:
@@ -574,10 +600,9 @@ def _assemble_mismatch_df(
     # Apply PII masking to data columns (not the mismatch_columns string — that's already masked)
     if pii_columns:
         if report_columns == "both":
-            pii_data_cols = (
-                [f"{c}_source" for c in pii_columns if f"{c}_source" in result.columns]
-                + [f"{c}_target" for c in pii_columns if f"{c}_target" in result.columns]
-            )
+            pii_data_cols = [f"{c}_source" for c in pii_columns if f"{c}_source" in result.columns] + [
+                f"{c}_target" for c in pii_columns if f"{c}_target" in result.columns
+            ]
         else:
             pii_data_cols = [c for c in pii_columns if c in result.columns]
         if pii_data_cols:
@@ -589,10 +614,9 @@ def _assemble_mismatch_df(
 def _apply_pii_masking_spark(df, pii_columns, mask_strategy, report_columns):
     """Apply PII masking to a Spark mismatch DataFrame."""
     if report_columns == "both":
-        pii_data_cols = (
-            [f"{c}_source" for c in pii_columns if f"{c}_source" in df.columns]
-            + [f"{c}_target" for c in pii_columns if f"{c}_target" in df.columns]
-        )
+        pii_data_cols = [f"{c}_source" for c in pii_columns if f"{c}_source" in df.columns] + [
+            f"{c}_target" for c in pii_columns if f"{c}_target" in df.columns
+        ]
     else:
         pii_data_cols = [c for c in pii_columns if c in df.columns]
 
@@ -601,11 +625,11 @@ def _apply_pii_masking_spark(df, pii_columns, mask_strategy, report_columns):
 
     # Also mask PII values inside the mismatch_columns string via UDF
     _, F, StringType = _get_spark_imports()
+    import re as _re
+
     from pyspark.sql.functions import udf
 
     from databridge_validator.pii.masking import _get_mask_function
-
-    import re as _re
 
     mask_fn = _get_mask_function(mask_strategy)
     pii_set = {c.lower() for c in pii_columns}

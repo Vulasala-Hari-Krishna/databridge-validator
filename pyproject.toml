@@ -57,6 +57,16 @@ target-version = "py39"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "F821",   # SparkDataFrame forward reference — PySpark is an optional dependency
+    "N806",   # PySpark convention: uppercase variable names (F, StringType)
+    "N812",   # PySpark convention: import functions as F
+    "UP006",  # list[] vs List[] — kept for Union[] consistency with 3.9 compat
+    "UP035",  # typing.List/Dict imports — used alongside Union for 3.9 compat
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/integration/test_full_validation_spark.py" = ["E402"]
 
 [tool.ruff.format]
 quote-style = "double"

@@ -11,7 +11,6 @@ from databridge_validator import (
     get_null_analysis,
     get_row_counts,
     get_schema_diff,
-    mask_pii_columns,
     normalize_columns,
     trim_whitespace,
 )
@@ -21,19 +20,23 @@ class TestFullValidationPandas:
     def test_end_to_end_validation_workflow(self):
         """Full workflow: clean, normalize, compare, report."""
         # Raw source data with whitespace and control chars
-        source_raw = pd.DataFrame({
-            "ID": [1, 2, 3, 4],
-            "Name": ["  Alice\n", "Bob\t", "  Charlie  ", "Diana"],
-            "Email": ["alice@test.com", "bob@test.com", "charlie@test.com", "diana@test.com"],
-            "Amount": [100.0, 200.0, 300.0, 400.0],
-        })
+        source_raw = pd.DataFrame(
+            {
+                "ID": [1, 2, 3, 4],
+                "Name": ["  Alice\n", "Bob\t", "  Charlie  ", "Diana"],
+                "Email": ["alice@test.com", "bob@test.com", "charlie@test.com", "diana@test.com"],
+                "Amount": [100.0, 200.0, 300.0, 400.0],
+            }
+        )
 
-        target_raw = pd.DataFrame({
-            "id": [1, 2, 3, 5],
-            "name": ["Alice", "Bobby", "Charlie", "Eve"],
-            "email": ["alice@test.com", "bob_new@test.com", "charlie@test.com", "eve@test.com"],
-            "amount": [100.0, 250.0, 300.0, 500.0],
-        })
+        target_raw = pd.DataFrame(
+            {
+                "id": [1, 2, 3, 5],
+                "name": ["Alice", "Bobby", "Charlie", "Eve"],
+                "email": ["alice@test.com", "bob_new@test.com", "charlie@test.com", "eve@test.com"],
+                "amount": [100.0, 250.0, 300.0, 500.0],
+            }
+        )
 
         # Step 1: Clean source data
         source = clean_control_characters(source_raw)
@@ -68,10 +71,12 @@ class TestFullValidationPandas:
         assert not counts["is_count_match"]
 
     def test_duplicate_and_null_checks(self):
-        df = pd.DataFrame({
-            "id": [1, 1, 2, 3],
-            "name": ["Alice", "Alice2", None, "Charlie"],
-        })
+        df = pd.DataFrame(
+            {
+                "id": [1, 1, 2, 3],
+                "name": ["Alice", "Alice2", None, "Charlie"],
+            }
+        )
 
         # Duplicate check
         dups = get_duplicate_report(df, key_columns=["id"])
@@ -82,20 +87,27 @@ class TestFullValidationPandas:
         assert nulls["name"]["null_count"] == 1
 
     def test_pii_masking_in_full_workflow(self):
-        source = pd.DataFrame({
-            "id": [1, 2],
-            "ssn": ["123-45-6789", "987-65-4321"],
-            "name": ["Alice", "Bob"],
-        })
-        target = pd.DataFrame({
-            "id": [1, 2],
-            "ssn": ["111-22-3333", "444-55-6666"],
-            "name": ["Alice", "Bob"],
-        })
+        source = pd.DataFrame(
+            {
+                "id": [1, 2],
+                "ssn": ["123-45-6789", "987-65-4321"],
+                "name": ["Alice", "Bob"],
+            }
+        )
+        target = pd.DataFrame(
+            {
+                "id": [1, 2],
+                "ssn": ["111-22-3333", "444-55-6666"],
+                "name": ["Alice", "Bob"],
+            }
+        )
 
         result = compare_dataframes(
-            source, target, key_columns=["id"],
-            pii_columns=["ssn"], mask_strategy="hash",
+            source,
+            target,
+            key_columns=["id"],
+            pii_columns=["ssn"],
+            mask_strategy="hash",
         )
         assert result.mismatch_count == 2
         # SSN data column should be hashed (default report_columns="target")
@@ -108,16 +120,20 @@ class TestFullValidationPandas:
         assert "111-22-3333" not in val
 
     def test_build_mismatch_report_standalone(self):
-        source = pd.DataFrame({
-            "id": [1, 2, 3],
-            "name": ["Alice", "Bob", "Charlie"],
-            "val": [10, 20, 30],
-        })
-        target = pd.DataFrame({
-            "id": [1, 2, 3],
-            "name": ["Alice", "Bobby", "Chuck"],
-            "val": [10, 20, 99],
-        })
+        source = pd.DataFrame(
+            {
+                "id": [1, 2, 3],
+                "name": ["Alice", "Bob", "Charlie"],
+                "val": [10, 20, 30],
+            }
+        )
+        target = pd.DataFrame(
+            {
+                "id": [1, 2, 3],
+                "name": ["Alice", "Bobby", "Chuck"],
+                "val": [10, 20, 99],
+            }
+        )
         report = build_mismatch_report(source, target, key_columns=["id"])
         assert len(report) == 2  # ids 2 and 3 have mismatches
 

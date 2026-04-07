@@ -5,10 +5,10 @@ import pytest
 
 from databridge_validator.pii.masking import (
     mask_alternate_chars,
-    mask_pii_columns,
-    mask_with_hash,
     mask_partial,
+    mask_pii_columns,
     mask_redact,
+    mask_with_hash,
 )
 
 
@@ -104,11 +104,13 @@ class TestMaskRedact:
 
 class TestMaskPiiColumns:
     def test_masks_specified_columns(self):
-        df = pd.DataFrame({
-            "id": [1, 2, 3],
-            "name": ["Alice", "Bob", "Charlie"],
-            "ssn": ["123-45-6789", "987-65-4321", "111-22-3333"],
-        })
+        df = pd.DataFrame(
+            {
+                "id": [1, 2, 3],
+                "name": ["Alice", "Bob", "Charlie"],
+                "ssn": ["123-45-6789", "987-65-4321", "111-22-3333"],
+            }
+        )
         result = mask_pii_columns(df, pii_columns=["ssn"])
         assert result["ssn"].iloc[0] != "123-45-6789"
         assert result["id"].tolist() == [1, 2, 3]
@@ -156,12 +158,14 @@ class TestMaskPiiColumns:
         assert result["name"].iloc[0] == "Alice"
 
     def test_multiple_pii_columns(self):
-        df = pd.DataFrame({
-            "id": [1],
-            "name": ["Alice"],
-            "ssn": ["123-45-6789"],
-            "email": ["alice@test.com"],
-        })
+        df = pd.DataFrame(
+            {
+                "id": [1],
+                "name": ["Alice"],
+                "ssn": ["123-45-6789"],
+                "email": ["alice@test.com"],
+            }
+        )
         result = mask_pii_columns(df, pii_columns=["ssn", "email"])
         assert result["ssn"].iloc[0] != "123-45-6789"
         assert result["email"].iloc[0] != "alice@test.com"

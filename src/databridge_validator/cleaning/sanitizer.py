@@ -10,7 +10,11 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from databridge_validator.utils.dataframe_helpers import _get_spark_imports, _is_spark_dataframe, validate_dataframe_type
+from databridge_validator.utils.dataframe_helpers import (
+    _get_spark_imports,
+    _is_spark_dataframe,
+    validate_dataframe_type,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,14 +45,11 @@ def trim_whitespace(df: Union[pd.DataFrame, "SparkDataFrame"]) -> Union[pd.DataF
     validate_dataframe_type(df, "df")
 
     if _is_spark_dataframe(df):
-        _, F, _ = _get_spark_imports()
+        _, _F, _ = _get_spark_imports()
         from pyspark.sql.functions import col, trim
 
         return df.select(
-            [
-                trim(col(c)).alias(c) if df.schema[c].dataType.simpleString() == "string" else col(c)
-                for c in df.columns
-            ]
+            [trim(col(c)).alias(c) if df.schema[c].dataType.simpleString() == "string" else col(c) for c in df.columns]
         )
 
     result = df.copy()
@@ -89,7 +90,7 @@ def clean_control_characters(
         pattern = DEFAULT_CONTROL_CHAR_PATTERN
 
     if _is_spark_dataframe(df):
-        _, F, _ = _get_spark_imports()
+        _, _F, _ = _get_spark_imports()
         from pyspark.sql.functions import col, regexp_replace
 
         return df.select(

@@ -156,7 +156,7 @@ def _build_mismatch_report_spark(
     report_columns: str,
 ):
     """PySpark implementation of mismatch report builder."""
-    _, F, StringType = _get_spark_imports()
+    _, F, _StringType = _get_spark_imports()
     from pyspark.sql.functions import array, array_remove, col, concat, lit, when
 
     validate_key_columns(source_df, key_columns)
@@ -176,7 +176,9 @@ def _build_mismatch_report_spark(
         when(
             ~col(f"src.{c}").eqNullSafe(col(f"tgt.{c}")),
             concat(
-                lit("{"), lit(c), lit(" : ("),
+                lit("{"),
+                lit(c),
+                lit(" : ("),
                 when(col(f"src.{c}").isNull(), lit("null")).otherwise(col(f"src.{c}").cast("string")),
                 lit(":"),
                 when(col(f"tgt.{c}").isNull(), lit("null")).otherwise(col(f"tgt.{c}").cast("string")),
@@ -194,21 +196,18 @@ def _build_mismatch_report_spark(
     elif report_columns == "source":
         data_cols = [col(f"src.{c}").alias(c) for c in compare_cols]
     else:  # "both"
-        data_cols = (
-            [col(f"src.{c}").alias(f"{c}_source") for c in compare_cols]
-            + [col(f"tgt.{c}").alias(f"{c}_target") for c in compare_cols]
-        )
+        data_cols = [col(f"src.{c}").alias(f"{c}_source") for c in compare_cols] + [
+            col(f"tgt.{c}").alias(f"{c}_target") for c in compare_cols
+        ]
 
-    select_expr = (
-        [col(f"src.{c}") for c in key_columns]
-        + data_cols
-        + [mismatch_col_expr]
-    )
+    select_expr = [col(f"src.{c}") for c in key_columns] + data_cols + [mismatch_col_expr]
 
     result = joined.select(select_expr)
     from pyspark.sql.functions import size
 
-    return result.filter(size(col("mismatch_columns")) > 0).drop("_diff_cols") if "_diff_cols" in [f.name for f in result.schema.fields] else result.filter(F.length(col("mismatch_columns")) > 2)
+    if "_diff_cols" in [f.name for f in result.schema.fields]:
+        return result.filter(size(col("mismatch_columns")) > 0).drop("_diff_cols")
+    return result.filter(F.length(col("mismatch_columns")) > 2)
 
 
 def get_schema_diff(
@@ -328,7 +327,7 @@ def get_duplicate_report(
     validate_key_columns(df, key_columns)
 
     if _is_spark_dataframe(df):
-        _, F, _ = _get_spark_imports()
+        _, _F, _ = _get_spark_imports()
         from pyspark.sql import Window
         from pyspark.sql.functions import col, count
 
@@ -365,7 +364,7 @@ def get_null_analysis(
     if _is_spark_dataframe(df):
         total = df.count()
         for col_name in df.columns:
-            from pyspark.sql.functions import col, isnan, isnull, sum as spark_sum
+            from pyspark.sql.functions import col, isnull
 
             null_count = df.filter(isnull(col(col_name))).count()
             result[col_name] = {"null_count": null_count, "total_count": total}

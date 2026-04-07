@@ -73,12 +73,22 @@ class TestValidationResult:
 
     def test_summary_and_metadata_are_independent(self):
         r1 = ValidationResult(
-            is_match=True, total_source_rows=0, total_target_rows=0,
-            matched_count=0, mismatch_count=0, source_extra_count=0, target_extra_count=0,
+            is_match=True,
+            total_source_rows=0,
+            total_target_rows=0,
+            matched_count=0,
+            mismatch_count=0,
+            source_extra_count=0,
+            target_extra_count=0,
         )
         r2 = ValidationResult(
-            is_match=True, total_source_rows=0, total_target_rows=0,
-            matched_count=0, mismatch_count=0, source_extra_count=0, target_extra_count=0,
+            is_match=True,
+            total_source_rows=0,
+            total_target_rows=0,
+            matched_count=0,
+            mismatch_count=0,
+            source_extra_count=0,
+            target_extra_count=0,
         )
         r1.summary["key"] = "value"
         assert "key" not in r2.summary

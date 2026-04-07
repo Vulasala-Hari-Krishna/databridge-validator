@@ -13,7 +13,7 @@ os.environ["PYSPARK_PYTHON"] = sys.executable
 os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
 from pyspark.sql import SparkSession
-from pyspark.sql.types import DoubleType, LongType, StringType, StructField, StructType
+from pyspark.sql.types import LongType, StringType, StructField, StructType
 
 from databridge_validator import (
     build_mismatch_report,
@@ -35,8 +35,7 @@ from databridge_validator.core.models import ValidationResult
 def spark():
     """Create a local Spark session for integration tests."""
     session = (
-        SparkSession.builder
-        .master("local[1]")
+        SparkSession.builder.master("local[1]")
         .appName("databridge-validator-tests")
         .config("spark.sql.shuffle.partitions", "1")
         .config("spark.ui.enabled", "false")
@@ -150,10 +149,12 @@ class TestCompareDataframesSpark:
 
     def test_compare_dataframes_empty_dataframes(self, spark):
         """Comparing empty DataFrames should return a match with zero counts."""
-        schema = StructType([
-            StructField("id", LongType(), True),
-            StructField("name", StringType(), True),
-        ])
+        schema = StructType(
+            [
+                StructField("id", LongType(), True),
+                StructField("name", StringType(), True),
+            ]
+        )
         empty = spark.createDataFrame([], schema)
 
         result = compare_dataframes(empty, empty, key_columns=["id"])
@@ -179,7 +180,8 @@ class TestCompareDataframesSpark:
     def test_compare_dataframes_with_exclude_columns(self, spark_source_df, spark_target_df):
         """Excluded columns should not affect comparison."""
         result = compare_dataframes(
-            spark_source_df, spark_target_df,
+            spark_source_df,
+            spark_target_df,
             key_columns=["id"],
             exclude_columns=["name", "email", "amount"],
         )
@@ -200,7 +202,8 @@ class TestCompareDataframesSpark:
     def test_compare_dataframes_report_columns_source(self, spark_source_df, spark_target_df):
         """report_columns='source' should include source data columns."""
         result = compare_dataframes(
-            spark_source_df, spark_target_df,
+            spark_source_df,
+            spark_target_df,
             key_columns=["id"],
             report_columns="source",
         )
@@ -212,7 +215,8 @@ class TestCompareDataframesSpark:
     def test_compare_dataframes_report_columns_both(self, spark_source_df, spark_target_df):
         """report_columns='both' should include source and target data columns."""
         result = compare_dataframes(
-            spark_source_df, spark_target_df,
+            spark_source_df,
+            spark_target_df,
             key_columns=["id"],
             report_columns="both",
         )
@@ -224,7 +228,8 @@ class TestCompareDataframesSpark:
     def test_compare_dataframes_with_num_partitions(self, spark_source_df, spark_target_df):
         """num_partitions should be accepted without error."""
         result = compare_dataframes(
-            spark_source_df, spark_target_df,
+            spark_source_df,
+            spark_target_df,
             key_columns=["id"],
             num_partitions=4,
         )
@@ -234,7 +239,8 @@ class TestCompareDataframesSpark:
     def test_compare_dataframes_with_persist(self, spark_source_df, spark_target_df):
         """persist=True should be accepted without error."""
         result = compare_dataframes(
-            spark_source_df, spark_target_df,
+            spark_source_df,
+            spark_target_df,
             key_columns=["id"],
             persist=True,
         )
@@ -324,8 +330,11 @@ class TestPiiMaskingSpark:
             ["id", "ssn", "name"],
         )
         result = compare_dataframes(
-            source, target, key_columns=["id"],
-            pii_columns=["ssn"], mask_strategy="alternate",
+            source,
+            target,
+            key_columns=["id"],
+            pii_columns=["ssn"],
+            mask_strategy="alternate",
         )
         assert result.mismatch_records is not None
         mismatch_pdf = result.mismatch_records.toPandas()
@@ -345,8 +354,11 @@ class TestPiiMaskingSpark:
             ["id", "ssn"],
         )
         result = compare_dataframes(
-            source, target, key_columns=["id"],
-            pii_columns=["ssn"], mask_strategy="redact",
+            source,
+            target,
+            key_columns=["id"],
+            pii_columns=["ssn"],
+            mask_strategy="redact",
         )
         # Source extra (id=2) should have masked SSN
         assert result.source_extra_records is not None
@@ -573,8 +585,11 @@ class TestEndToEndSpark:
             ["id", "ssn", "name"],
         )
         result = compare_dataframes(
-            source, target, key_columns=["id"],
-            pii_columns=["ssn"], mask_strategy="hash",
+            source,
+            target,
+            key_columns=["id"],
+            pii_columns=["ssn"],
+            mask_strategy="hash",
         )
         assert result.mismatch_count == 2
         mismatch_pdf = result.mismatch_records.toPandas()
