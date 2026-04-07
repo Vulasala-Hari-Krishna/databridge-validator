@@ -54,7 +54,7 @@ def trim_whitespace(df: Union[pd.DataFrame, "SparkDataFrame"]) -> Union[pd.DataF
 
     result = df.copy()
     for col_name in result.columns:
-        if pd.api.types.is_string_dtype(result[col_name]):
+        if pd.api.types.is_string_dtype(result[col_name]) or result[col_name].dtype == object:
             result[col_name] = result[col_name].str.strip()
     return result
 
@@ -105,7 +105,7 @@ def clean_control_characters(
     result = df.copy()
     compiled = re.compile(pattern)
     for col_name in result.columns:
-        if pd.api.types.is_string_dtype(result[col_name]):
+        if pd.api.types.is_string_dtype(result[col_name]) or result[col_name].dtype == object:
             result[col_name] = result[col_name].where(
                 result[col_name].isna(),
                 result[col_name].str.replace(compiled, "", regex=True),

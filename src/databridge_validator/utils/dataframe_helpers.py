@@ -115,7 +115,7 @@ def cast_all_to_string(df: Union[pd.DataFrame, "SparkDataFrame"]) -> Union[pd.Da
 
     result = df.copy()
     for col_name in result.columns:
-        if pd.api.types.is_string_dtype(result[col_name]):
+        if pd.api.types.is_string_dtype(result[col_name]) or result[col_name].dtype == object:
             # Already string-like; just ensure nulls stay as None
             result[col_name] = result[col_name].where(result[col_name].notna(), other=None)
         else:
