@@ -67,28 +67,18 @@ summary statistics, and optionally masks PII columns in reports.
 PySpark support requires **PySpark 3.3.0 or higher** (optional). Tested with PySpark 3.5.
 Note: PySpark 3.3–3.5 supports Python 3.9–3.11; PySpark 4.0+ adds Python 3.12 support.
 
-### Basic (pandas only)
+### Install
 
 ```bash
 pip install databridge-validator
 ```
 
-### With PySpark support
+This installs the library with pandas support. It also works with PySpark DataFrames if PySpark is already installed in your environment (e.g., Databricks, EMR, or local Spark setup).
+
+If you need PySpark installed alongside the library:
 
 ```bash
 pip install databridge-validator[spark]
-```
-
-### Development install
-
-```bash
-pip install databridge-validator[dev]
-```
-
-### Everything (PySpark + dev tools)
-
-```bash
-pip install databridge-validator[all]
 ```
 
 ---
@@ -611,11 +601,18 @@ report_dict = result.to_dict()
 
 ## Development
 
+For contributors working on the library itself.
+
 ### Setup
 
 ```bash
 git clone https://github.com/databridge-validator/databridge-validator.git
 cd databridge-validator
+
+# Install with all dev tools (pytest, ruff, mypy, etc.)
+pip install -e ".[dev]"
+
+# Install with dev tools + PySpark (for running Spark integration tests)
 pip install -e ".[all]"
 ```
 
