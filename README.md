@@ -1,7 +1,7 @@
 # databridge-validator
 
-[![PyPI version](https://badge.fury.io/py/databridge-validator.svg)](https://pypi.org/project/databridge-validator/)
-[![Python versions](https://img.shields.io/pypi/pyversions/databridge-validator.svg)](https://pypi.org/project/databridge-validator/)
+[![PyPI version](https://img.shields.io/pypi/v/databridge-validator)](https://pypi.org/project/databridge-validator/)
+[![Python versions](https://img.shields.io/pypi/pyversions/databridge-validator)](https://pypi.org/project/databridge-validator/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Generic, reusable utilities for **validating data migration** from legacy systems
